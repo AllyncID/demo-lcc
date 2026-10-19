@@ -15,6 +15,8 @@ export function createDemoHandler({ storage, secret, adminEmail, adminPassword, 
   const gateway = express(), pending = new Map();
   gateway.disable('x-powered-by');
   gateway.set('trust proxy', 1);
+  // Vercel pre-parses unsigned cookies; verify our cookies from the original header.
+  gateway.use((req, res, next) => { delete req.cookies; delete req.signedCookies; next(); });
   gateway.use(cookieParser(secret));
   gateway.use(rateLimit({ windowMs: 60000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false, message: { error: 'Terlalu banyak permintaan demo. Coba lagi satu menit.' } }));
   gateway.use(async (req, res) => {

@@ -21,6 +21,8 @@ function memoryStorage() {
 }
 async function launch(t, storage) {
   const app = express();
+  // Vercel's Node runtime decorates incoming requests before the Express handler.
+  app.use((req, res, next) => { req.cookies = {}; next(); });
   app.use(createDemoHandler({ storage, secret: 'test-demo-secret-'.repeat(4), adminEmail: 'admin@demo.lcc.invalid', adminPassword: 'Demo-Admin-2026!', secure: false }));
   const server = await new Promise(resolve => { const server = app.listen(0, '127.0.0.1', () => resolve(server)); });
   t.after(() => new Promise(resolve => server.close(resolve)));
