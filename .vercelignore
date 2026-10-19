@@ -1,0 +1,7 @@
+.env*
+.local/
+.npm-cache/
+data/
+docs/
+tests/
+public/uploads/

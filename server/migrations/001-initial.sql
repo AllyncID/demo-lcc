@@ -1,0 +1,22 @@
+PRAGMA foreign_keys = ON;
+CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS creators (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  phone TEXT NOT NULL, handle TEXT NOT NULL, category_id INTEGER NOT NULL REFERENCES categories(id),
+  bio TEXT NOT NULL DEFAULT '', photo TEXT, status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+  visible INTEGER NOT NULL DEFAULT 1, dummy INTEGER NOT NULL DEFAULT 0, answers TEXT NOT NULL DEFAULT '{}',
+  field_snapshot TEXT NOT NULL DEFAULT '[]', created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS votes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, creator_id INTEGER NOT NULL REFERENCES creators(id),
+  category_id INTEGER NOT NULL REFERENCES categories(id), voter_hash TEXT NOT NULL, ip_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL, UNIQUE(voter_hash, category_id)
+);
+CREATE INDEX IF NOT EXISTS votes_creator_idx ON votes(creator_id);
+CREATE TABLE IF NOT EXISTS admins (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, voter_hash TEXT NOT NULL, csrf TEXT NOT NULL, admin_id INTEGER REFERENCES admins(id), expires_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);
+CREATE TABLE IF NOT EXISTS login_attempts (ip_hash TEXT PRIMARY KEY, failures INTEGER NOT NULL DEFAULT 0, blocked_until INTEGER NOT NULL DEFAULT 0, last_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS audit_events (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT NOT NULL, detail TEXT NOT NULL, created_at TEXT NOT NULL);

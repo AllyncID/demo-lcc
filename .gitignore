@@ -1,0 +1,12 @@
+node_modules/
+dist/
+data/
+public/uploads/
+.env
+.npm-cache/
+.local/
+*.log
+.vercel/
+docs/*.png
+docs/*.jpg
+docs/*.jpeg

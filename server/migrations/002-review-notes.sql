@@ -1,0 +1,1 @@
+ALTER TABLE creators ADD COLUMN review_note TEXT NOT NULL DEFAULT '';

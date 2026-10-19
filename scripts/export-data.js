@@ -1,0 +1,11 @@
+import { DatabaseSync } from 'node:sqlite';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+const databasePath = resolve(process.env.DATABASE_PATH || 'data/lcc.sqlite');
+const db = new DatabaseSync(databasePath, { readOnly: true });
+const tables = ['schema_migrations', 'settings', 'categories', 'creators', 'votes', 'audit_events'];
+const data = { exportedAt: new Date().toISOString(), schemaVersion: db.prepare('SELECT MAX(version) AS version FROM schema_migrations').get().version, tables: Object.fromEntries(tables.map(table => [table, db.prepare(`SELECT * FROM ${table}`).all()])) };
+mkdirSync('.local', { recursive: true });
+const output = resolve(`.local/lcc-export-${new Date().toISOString().slice(0,10)}.json`);
+writeFileSync(output, JSON.stringify(data, null, 2), { mode: 0o600 });
+db.close(); console.log(`Ekspor data privat tersimpan: ${output}`);
