@@ -170,5 +170,3 @@ em { font-style: normal; font-weight: inherit; color: var(--gold); }
 @media(prefers-reduced-motion:reduce) {
   .page-loader.is-ready { opacity: 0; visibility: hidden; }
 }
-
-.demo-notice{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 20px;background:#d2b06b;color:#141412;font-size:12px;line-height:1.5;position:relative;z-index:110}.demo-notice strong{flex-shrink:0;letter-spacing:.08em}.demo-notice a{color:inherit;text-decoration:underline;flex-shrink:0}@media(max-width:680px){.demo-notice{align-items:flex-start;flex-direction:column;gap:3px;padding:10px 18px}}
