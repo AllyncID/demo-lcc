@@ -4,6 +4,8 @@ Fondasi website lokal untuk LCC NTB. React + TypeScript + Vite, Express 5, Tailw
 
 ## Demo client di Vercel
 
+Preview: https://demo-lcc.vercel.app/ — akses admin dan peserta diberikan terpisah kepada pemilik project.
+
 `vercel.json` menjalankan frontend Vite dan `api/demo.js` untuk demo terpisah. Siapkan private Vercel Blob store yang terhubung ke project serta environment variables `SESSION_SECRET` (minimal 32 karakter), `DEMO_ADMIN_EMAIL`, dan `DEMO_ADMIN_PASSWORD` (minimal 12 karakter). Gunakan Node 24. Kredensial dan token penyimpanan tidak disimpan di Git atau bundle frontend.
 
 Demo membuat dataset sintetis baru untuk setiap browser. Cookie demo signed/HttpOnly/Secure berlaku 24 jam; snapshot database dan file disimpan di private Blob. Pembacaan terbaru dan conditional writes mencegah sesi hilang saat cold start serta mencegah perubahan serentak saling menimpa. Respons sukses baru dikirim setelah penyimpanan berhasil; konflik meminta pengguna memuat ulang. Jangan gunakan snapshot ini sebagai database acara produksi. Snapshot lama perlu dibersihkan operator setelah review selesai.
