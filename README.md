@@ -53,7 +53,11 @@ Tanggal admin ditampilkan dalam WITA (UTC+8) dan disimpan sebagai UTC. Periode b
 
 Kolom dasar stabil; builder mengatur maksimal 20 kolom tambahan: teks, paragraf, email, URL, angka, dropdown dan checkbox. Jawaban lama mempertahankan snapshot label saat pendaftaran. Creator yang disembunyikan atau ditolak tidak tampil publik; riwayat vote tetap disimpan.
 
-Sosial di footer masih dummy Instagram, TikTok dan YouTube sesuai brief. Tombolnya memberi keterangan pratinjau sampai akun resmi tersedia.
+Halaman publik menyediakan tombol bantuan WhatsApp ke +62 895-0468-7277. Bagian Kabar terbaru di akhir pendaftaran, polling dan halaman peserta mengarah ke Facebook dan Instagram yang diberikan panitia; link yang sama tersedia di footer.
+
+Di luar periode voting aktif, `/vote` menampilkan halaman status khusus untuk voting yang belum dibuka, dinonaktifkan, atau telah berakhir. Jadwal pembukaan ditampilkan dalam WITA jika tersedia.
+
+Menu admin **Pengumuman** menyimpan dress code, tanggal/jam acara dan periode tayang popup. Pengumuman aktif harus memiliki seluruh isi dan batas periode yang valid. Server hanya mengirim isi publik mulai awal periode sampai sebelum waktu akhir; draft di luar periode tetap di admin. Popup tampil setiap membuka atau berpindah halaman publik, termasuk refresh, dan tidak tampil otomatis di admin. Menutup popup berlaku hanya untuk halaman yang sedang dibuka. Pratinjau admin tersedia sebelum menyimpan; perubahan draft dipertahankan selama pembaruan dashboard otomatis. Buka/tutup memakai transisi halus dan menghormati pengaturan reduced motion.
 
 Seluruh halaman memakai Golos Text Variable lokal, judul besar dengan tracking rapat, tombol persegi dengan panah, garis tipis, dan ruang kosong seperti referensi Consilio. Hero memakai pola garis SVG orisinal serta aset trofi LCC. Galeri, registrasi, login, dan dashboard mengikuti sistem warna dan tipografi yang sama. Ikon memakai Hugeicons Stroke Rounded. Desktop (viewport browser 1226 px) dan preview responsif 320, 390, 768 px sudah diperiksa tanpa overflow horizontal; menu HP, anchor navbar, filter kategori dari landing, dan modal admin juga diperiksa.
 

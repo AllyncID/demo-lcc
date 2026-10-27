@@ -7,7 +7,7 @@ import { randomBytes, createHmac, timingSafeEqual } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { openDatabase, hashPassword, verifyPassword } from './db.js';
-import { settingsSchema, fieldSchema, registrationSchema, creatorUpdateSchema, validateAnswers, campaignOpen } from './validation.js';
+import { settingsSchema, fieldSchema, registrationSchema, creatorUpdateSchema, validateAnswers, campaignOpen, activeAnnouncement } from './validation.js';
 import { savePhoto, removePhoto, PhotoError } from './photos.js';
 import { privateFileRequest } from './private-files.js';
 import { createTicketService } from './tickets.js';
@@ -77,7 +77,8 @@ export function createApp(config) {
     const categories = db.prepare('SELECT * FROM categories WHERE active=1 ORDER BY id').all();
     const creators = db.prepare(`SELECT c.id,c.name,c.handle,c.category_id AS categoryId,c.bio,c.photo,c.dummy,cat.name AS category FROM creators c JOIN categories cat ON cat.id=c.category_id LEFT JOIN votes v ON v.creator_id=c.id WHERE c.status='approved' AND c.visible=1 AND cat.active=1 GROUP BY c.id ORDER BY COUNT(v.id) DESC,c.id`).all();
     const votedCategories = db.prepare('SELECT category_id,creator_id FROM votes WHERE voter_hash=?').all(req.session.voter_hash);
-    res.json({ settings, categories, creators, registrationPayment, mailDeliveryMode: tickets.deliveryMode, ...(config.demoMode ? { demoMode: true } : {}), votedCategories, registrationOpen: campaignOpen(settings, 'registration', now()), votingOpen: campaignOpen(settings, 'voting', now()), csrfToken: req.session.csrf, isAdmin: !!req.session.admin_id });
+    const { announcement, ...publicSettings } = settings;
+    res.json({ settings: publicSettings, announcement: activeAnnouncement(announcement, now()), categories, creators, registrationPayment, mailDeliveryMode: tickets.deliveryMode, ...(config.demoMode ? { demoMode: true } : {}), votedCategories, registrationOpen: campaignOpen(settings, 'registration', now()), votingOpen: campaignOpen(settings, 'voting', now()), csrfToken: req.session.csrf, isAdmin: !!req.session.admin_id });
   });
   app.post('/api/register', submissionsLimit, async (req, res, next) => {
     if (config.demoMode) return res.status(403).json({ error: 'Ini demo client. Pendaftaran asli dinonaktifkan. Gunakan akun peserta demo.' });

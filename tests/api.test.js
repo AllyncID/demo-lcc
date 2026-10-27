@@ -63,6 +63,22 @@ test('admin login rotates session and protects settings', async () => {
   assert.equal((await admin.req('/api/admin/login', 'POST', { email: 'admin@lccntb.id', password: 'StrongTestPassword!27' })).status, 200);
   assert.equal((await admin.req('/api/admin/dashboard')).status, 200);
 });
+test('only admin can configure announcements and public bootstrap exposes content only during the display window', async () => {
+  const announcement = { enabled: true, dressCode: 'Hitam dan gold', eventAt: '2026-12-20T11:00:00.000Z', startsAt: '2026-10-01T00:00:00.000Z', endsAt: '2026-10-07T00:00:00.000Z' };
+  assert.equal((await client.req('/api/admin/settings', 'PUT', { announcement })).status, 401);
+  assert.equal((await admin.req('/api/admin/settings', 'PUT', { announcement: { ...announcement, dressCode: '' } })).status, 400);
+  assert.equal((await admin.req('/api/admin/settings', 'PUT', { announcement })).status, 200);
+  let bootstrap = (await client.req('/api/bootstrap')).data;
+  assert.deepEqual(bootstrap.announcement, { dressCode: 'Hitam dan gold', eventAt: announcement.eventAt });
+  assert.equal('announcement' in bootstrap.settings, false);
+  assert.deepEqual((await admin.req('/api/admin/dashboard')).data.settings.announcement, announcement);
+  await admin.req('/api/admin/settings', 'PUT', { announcement: { ...announcement, startsAt: '2026-10-06T00:00:00.001Z' } });
+  assert.equal((await client.req('/api/bootstrap')).data.announcement, null);
+  await admin.req('/api/admin/settings', 'PUT', { announcement: { ...announcement, endsAt: '2026-10-06T00:00:00.000Z' } });
+  assert.equal((await client.req('/api/bootstrap')).data.announcement, null);
+  await admin.req('/api/admin/settings', 'PUT', { announcement: { ...announcement, enabled: false } });
+  assert.equal((await client.req('/api/bootstrap')).data.announcement, null);
+});
 test('inactive registration rejects direct submission and restores', async () => {
   await admin.req('/api/admin/settings', 'PUT', { registrationActive: false });
   assert.equal((await client.req('/api/register', 'POST', {})).status, 403);

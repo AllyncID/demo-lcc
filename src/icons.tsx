@@ -34,6 +34,10 @@ import ArrowUpRight01Icon from '@hugeicons/core-free-icons/ArrowUpRight01Icon';
 import Menu01Icon from '@hugeicons/core-free-icons/Menu01Icon';
 import Wallet01Icon from '@hugeicons/core-free-icons/Wallet01Icon';
 import Copy01Icon from '@hugeicons/core-free-icons/Copy01Icon';
+import WhatsappIcon from '@hugeicons/core-free-icons/WhatsappIcon';
+import Facebook01Icon from '@hugeicons/core-free-icons/Facebook01Icon';
+import Megaphone01Icon from '@hugeicons/core-free-icons/Megaphone01Icon';
+import Shirt01Icon from '@hugeicons/core-free-icons/Shirt01Icon';
 
 function rounded(icon: IconSvgElement) {
   return function Icon({ size = 24, ...props }: Omit<HugeiconsIconProps, 'icon'>) {
@@ -76,3 +80,7 @@ export const ArrowUpRight = rounded(ArrowUpRight01Icon);
 export const Menu = rounded(Menu01Icon);
 export const Wallet = rounded(Wallet01Icon);
 export const Copy = rounded(Copy01Icon);
+export const WhatsApp = rounded(WhatsappIcon);
+export const Facebook = rounded(Facebook01Icon);
+export const Megaphone = rounded(Megaphone01Icon);
+export const Shirt = rounded(Shirt01Icon);

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Check, CheckCircle2, Vote, ShieldCheck, CalendarDays, ArrowUpRight, SlidersHorizontal } from './icons';
 import { api, dateText } from './api';
 import { Header, Footer, ErrorMessage, Portrait, Modal } from './components';
-import { getPollingCreators } from './polling-utils';
+import { getPollingCreators, getVotingUnavailable } from './polling-utils';
 import type { Bootstrap, Creator } from './types';
 import './polling.css';
 
@@ -31,6 +31,18 @@ export function VotePage({ data, refresh }: { data: Bootstrap; refresh: () => Pr
     finally { setBusy(false); }
   }
 
+  const unavailable = getVotingUnavailable(data);
+  if (unavailable) return <div className="polling-page"><Header data={data}/><main id="main-content" className="hero polling-unavailable" aria-labelledby="polling-unavailable-title">
+    <div className="hero-content polling-unavailable-content">
+      <span className="polling-unavailable-icon" aria-hidden="true"><CalendarDays size={34}/></span>
+      <span className="section-label">POLLING LCC AWARDS {data.settings.year}</span>
+      <h1 id="polling-unavailable-title">{unavailable.title}</h1>
+      <p>{unavailable.description}</p>
+      {unavailable.opensAt && <div className="polling-opens-at"><span>Voting dibuka pada</span><time dateTime={unavailable.opensAt}>{dateText(unavailable.opensAt, true)}</time></div>}
+      <Link className="btn btn-primary" to="/">Kembali ke beranda<ArrowUpRight size={18}/></Link>
+    </div>
+  </main><Footer data={data} showCta={false}/></div>;
+
   return <div className="polling-page"><Header data={data}/><main id="main-content">
     <section className="polling-hero site-container" aria-labelledby="polling-title">
       <div className="polling-hero-copy">
@@ -55,7 +67,6 @@ export function VotePage({ data, refresh }: { data: Bootstrap; refresh: () => Pr
         {data.categories.map(c => <button key={c.id} className={'btn btn-sm' + (category === c.id ? ' is-active' : '')} aria-pressed={category === c.id} onClick={() => setCategory(c.id)}>{c.name}</button>)}
       </div>
       <label className="polling-mobile-filter"><span>Kategori karya</span><select className="select" aria-label="Kategori karya" value={category} onChange={e => setCategory(Number(e.target.value))}><option value={0}>Semua creator</option>{data.categories.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}</select></label>
-      {!data.votingOpen && <div className="polling-notice" role="status"><CalendarDays size={18}/><p>Polling belum dibuka atau sudah berakhir. Kamu tetap bisa mengenal karya para creator.</p></div>}
       {success && <div className="polling-notice is-success" role="status"><CheckCircle2 size={19}/><p>{success}</p></div>}
       <div className="polling-results-head"><p aria-live="polite"><strong>{categoryName}</strong><span>{creators.length} creator</span></p><span><SlidersHorizontal size={15}/>Dukungan terbanyak lebih dulu</span></div>
       <div className="polling-grid">{creators.map(c => {

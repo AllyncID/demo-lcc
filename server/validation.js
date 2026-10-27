@@ -2,10 +2,22 @@ import { z } from 'zod';
 
 const shortText = z.string().trim().min(1).max(160);
 const date = z.string().datetime().nullable();
+export const announcementSchema = z.object({
+  enabled: z.boolean(), dressCode: z.string().trim().max(1200),
+  eventAt: date, startsAt: date, endsAt: date
+}).strict().superRefine((value, ctx) => {
+  if (value.enabled && (!value.dressCode || !value.eventAt || !value.startsAt || !value.endsAt)) ctx.addIssue({ code: 'custom', message: 'Lengkapi dress code, tanggal acara, serta awal dan akhir penayangan.' });
+  if (value.startsAt && value.endsAt && Date.parse(value.startsAt) >= Date.parse(value.endsAt)) ctx.addIssue({ code: 'custom', message: 'Akhir penayangan harus setelah awal penayangan.' });
+});
+export function activeAnnouncement(announcement, now = Date.now()) {
+  if (!announcement?.enabled || !announcement.dressCode || !announcement.eventAt || !announcement.startsAt || !announcement.endsAt || now < Date.parse(announcement.startsAt) || now >= Date.parse(announcement.endsAt)) return null;
+  return { dressCode: announcement.dressCode, eventAt: announcement.eventAt };
+}
 export const settingsSchema = z.object({
   eventName: shortText, year: z.string().regex(/^\d{4}$/), location: shortText,
   registrationActive: z.boolean(), votingActive: z.boolean(),
-  registrationStartsAt: date, registrationEndsAt: date, votingStartsAt: date, votingEndsAt: date
+  registrationStartsAt: date, registrationEndsAt: date, votingStartsAt: date, votingEndsAt: date,
+  announcement: announcementSchema
 }).partial().strict();
 export const fieldSchema = z.object({
   id: z.string().regex(/^[a-z][a-z0-9_]{1,39}$/).refine(v => !['__proto__', 'prototype', 'constructor', 'name', 'email', 'phone', 'handle', 'categoryId', 'consent', 'bio', 'photoData'].includes(v)),
