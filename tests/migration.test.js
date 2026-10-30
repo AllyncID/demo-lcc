@@ -27,5 +27,23 @@ test('existing v1 database migrates once without losing registration, votes or a
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=2').get().n, 1);
     assert.equal(db.prepare('SELECT payment_status FROM creators WHERE id=1').get().payment_status, 'not_required');
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=3').get().n, 1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=5').get().n, 1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM categories WHERE name=? AND active=1').get('Konten Kreator Sosial').n, 1);
+  } finally { db?.close(); rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('social creator category is available in fresh databases and preserves an existing category on upgrade', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lcc-category-')); const path = join(dir, 'test.sqlite'); let db;
+  try {
+    db = openDatabase(path, 'admin@example.invalid', 'StrongTestPassword123!');
+    const category = db.prepare('SELECT id,active FROM categories WHERE name=?').get('Konten Kreator Sosial');
+    assert.ok(category);
+    assert.equal(category.active, 1);
+    // Simulate a v4 database where the organizer already added this category.
+    db.prepare('DELETE FROM schema_migrations WHERE version=5').run();
+    db.prepare('UPDATE categories SET active=0 WHERE id=?').run(category.id);
+    db.close(); db = openDatabase(path, 'unused@example.invalid', 'UnusedPassword123!');
+    assert.deepEqual({ ...db.prepare('SELECT id,active FROM categories WHERE name=?').get('Konten Kreator Sosial') }, { id: category.id, active: 0 });
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM categories WHERE name=?').get('Konten Kreator Sosial').n, 1);
   } finally { db?.close(); rmSync(dir, { recursive: true, force: true }); }
 });

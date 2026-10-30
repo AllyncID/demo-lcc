@@ -78,5 +78,13 @@ export function openDatabase(path, email, password) {
       db.exec('COMMIT');
     } catch (error) { db.exec('ROLLBACK'); throw error; }
   }
+  if (!db.prepare('SELECT version FROM schema_migrations WHERE version=5').get()) {
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      db.exec(readFileSync(new URL('./migrations/005-social-creator-category.sql', import.meta.url), 'utf8'));
+      db.prepare('INSERT INTO schema_migrations VALUES(5,?)').run(timestamp);
+      db.exec('COMMIT');
+    } catch (error) { db.exec('ROLLBACK'); throw error; }
+  }
   return db;
 }

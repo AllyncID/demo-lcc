@@ -52,7 +52,6 @@ export function createDemoHandler({ storage, secret, adminEmail, adminPassword, 
       if (!stored) await seedClientDemo(db, receiptDir);
       instance.app.set('trust proxy', 1);
       instance.app.use('/uploads', express.static(uploadDir, { dotfiles: 'deny' }));
-      const startChanges = db.prepare('SELECT total_changes() AS count').get().count;
       const end = res.end.bind(res), write = res.write.bind(res), chunks = [];
       let ending = false;
       res.write = (chunk, encoding, callback) => { chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, typeof encoding === 'string' ? encoding : undefined)); (typeof encoding === 'function' ? encoding : callback)?.(); return true; };
@@ -62,7 +61,8 @@ export function createDemoHandler({ storage, secret, adminEmail, adminPassword, 
           ending = true;
           if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, typeof encoding === 'string' ? encoding : undefined));
           void (async () => {
-            const changed = !stored || db.prepare('SELECT total_changes() AS count').get().count !== startChanges;
+            // Include startup migrations when persisting an existing demo snapshot.
+            const changed = !stored || db.prepare('SELECT total_changes() AS count').get().count > 0;
             db.close(); db = undefined;
             if (changed) {
               const files = {};

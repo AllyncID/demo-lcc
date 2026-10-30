@@ -12,7 +12,8 @@ const categoryDescriptions: Record<string, string> = {
   Religi: 'Pesan kebaikan dan refleksi yang hadir lewat konten.',
   Musisi: 'Suara, nada, dan karya musik yang punya cerita.',
   Film: 'Cerita visual, sinematografi, dan karya di balik layar.',
-  'Berita & Narasi': 'Informasi dan cerita yang memberi konteks pada sekitar kita.'
+  'Berita & Narasi': 'Informasi dan cerita yang memberi konteks pada sekitar kita.',
+  'Konten Kreator Sosial': 'Kepedulian, aksi sosial, dan cerita yang membawa dampak bagi sesama.'
 };
 
 export function Landing({ data }: { data: Bootstrap }) {

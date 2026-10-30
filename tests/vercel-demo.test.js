@@ -1,12 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
+import { DatabaseSync } from 'node:sqlite';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { createDemoHandler } from '../server/vercel-demo.js';
 
 function memoryStorage() {
   const records = new Map();
   let revision = 0;
   return {
+    records,
     failWrites: false,
     conflict: false,
     async read(key) { return records.get(key) || null; },
@@ -83,4 +89,29 @@ test('demo never acknowledges an unpersisted write or overwrites a concurrent sn
   assert.equal((await call(base, '/api/votes', 'POST', { creatorId: 1 })).status, 409);
   storage.conflict = false;
   assert.equal((await call(base, '/api/bootstrap')).data.votedCategories.length, 0);
+});
+
+test('existing Vercel snapshots persist the new social category even on read-only bootstrap requests', async t => {
+  const storage = memoryStorage(), base = await launch(t, storage), call = client();
+  await call(base, '/api/bootstrap');
+  const [key, record] = [...storage.records][0];
+  const snapshot = JSON.parse(gunzipSync(record.body));
+  const directory = mkdtempSync(join(tmpdir(), 'lcc-snapshot-migration-'));
+  const path = join(directory, 'old.sqlite'); let db;
+  try {
+    writeFileSync(path, Buffer.from(snapshot.database, 'base64'));
+    db = new DatabaseSync(path);
+    db.exec("DELETE FROM categories WHERE name='Konten Kreator Sosial'; DELETE FROM schema_migrations WHERE version=5;");
+    db.close(); db = undefined;
+    snapshot.database = readFileSync(path).toString('base64');
+    storage.records.set(key, { ...record, body: gzipSync(JSON.stringify(snapshot)) });
+    const response = await call(base, '/api/bootstrap');
+    assert.equal(response.status, 200);
+    assert.equal(response.data.categories.filter(c => c.name === 'Konten Kreator Sosial').length, 1);
+    const saved = JSON.parse(gunzipSync(storage.records.get(key).body));
+    writeFileSync(path, Buffer.from(saved.database, 'base64'));
+    db = new DatabaseSync(path);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=5').get().n, 1);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM categories WHERE name='Konten Kreator Sosial'").get().n, 1);
+  } finally { db?.close(); rmSync(directory, { recursive: true, force: true }); }
 });
