@@ -5,7 +5,8 @@ const template = readFileSync('dist/index.html','utf8');
 const escape = value => value.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 for (const [path,file] of [['/','index'],['/vote','vote'],['/register','register'],['/peserta','peserta'],['/admin','admin'],['/tiket/verifikasi/token','ticket']]) {
   const meta = pageMetadata(path);
-  const html = template.replace(/<title>.*?<\/title>/s, `<title>${escape(meta.title)}</title>`).replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${escape(meta.description)}" />`).replace('</head>', `
+  const heroPreload = path === '/' ? '<link rel="preload" as="image" href="/assets/register-awards-wallpaper-v2.webp" fetchpriority="high" />' : '';
+  const html = template.replace('<head>', `<head>\n    ${heroPreload}`).replace(/<title>.*?<\/title>/s, `<title>${escape(meta.title)}</title>`).replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${escape(meta.description)}" />`).replace('</head>', `
     <link rel="canonical" href="${meta.canonical}" />
     <meta name="robots" content="${meta.robots}" />
     <meta property="og:type" content="website" />

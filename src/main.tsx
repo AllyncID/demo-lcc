@@ -8,16 +8,15 @@ import { PageLoader } from './PageLoader';
 import { WhatsAppHelp } from './PublicContact';
 import { EventAnnouncement } from './EventAnnouncement';
 import { Landing } from './Landing';
-import { VotePage } from './PublicPages';
-import { RegisterPage } from './RegisterPage';
 import { pageMetadata } from './metadata';
 const Admin = lazy(() => import('./Admin').then(module => ({ default: module.Admin })));
-import { ParticipantPage, TicketVerificationPage } from './ParticipantPages';
+const VotePage = lazy(() => import('./PublicPages').then(module => ({ default: module.VotePage })));
+const RegisterPage = lazy(() => import('./RegisterPage').then(module => ({ default: module.RegisterPage })));
+const ParticipantPage = lazy(() => import('./ParticipantPages').then(module => ({ default: module.ParticipantPage })));
+const TicketVerificationPage = lazy(() => import('./ParticipantPages').then(module => ({ default: module.TicketVerificationPage })));
 import '@fontsource-variable/golos-text';
 import '@fontsource-variable/sora';
 import './styles.css';
-import './admin.css';
-import './admin-mobile.css';
 
 function App() {
   const location = useLocation();

@@ -150,12 +150,12 @@ em { font-style: normal; font-weight: inherit; color: var(--gold); }
 
 /* The route key restarts this animation; hash links keep their scroll behavior. */
 .page-loader { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: #0b0b0a; pointer-events: none; }
-.page-loader.is-ready { animation: page-loader-leave .45s cubic-bezier(.22,1,.36,1) .4s forwards; }
+.page-loader.is-ready { animation: page-loader-leave .18s ease-out forwards; }
 .page-loader-brand { display: flex; flex-direction: column; align-items: center; gap: 22px; animation: page-logo-enter .5s cubic-bezier(.22,1,.36,1) both; }
 .page-loader .brand-mark { width: 104px; height: 104px; object-fit: contain; animation: page-logo-glow 1.8s ease-in-out infinite alternate; }
 .page-loader-brand>span { color: #d2b06b; font-family: 'Sora Variable',sans-serif; font-size: 14px; font-weight: 500; letter-spacing: .18em; }
 @keyframes page-logo-enter { from { opacity: 0; transform: translateY(8px) scale(.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes page-logo-glow { from { opacity: .65; filter: drop-shadow(0 0 0 #d2b06b00); transform: scale(.97); } to { opacity: 1; filter: drop-shadow(0 0 18px #d2b06b35); transform: scale(1.02); } }
+@keyframes page-logo-glow { from { opacity: .65; transform: scale(.97); } to { opacity: 1; transform: scale(1.02); } }
 @keyframes page-loader-leave { to { opacity: 0; visibility: hidden; } }
 @media(max-width:680px) {
   .home-hero-inner,.section-intro { text-align: center; }

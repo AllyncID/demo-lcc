@@ -12,6 +12,8 @@ import { LayoutDashboard, Users, Vote, ListChecks, Settings2, History, LogOut, E
 import { api, ApiError, dateText, numberText } from './api';
 import { Brand, Mark, ErrorMessage, Empty, Portrait, Modal } from './components';
 import type { AdminCreator, Bootstrap, Dashboard, Field, Settings } from './types';
+import './admin.css';
+import './admin-mobile.css';
 
 type TabName = 'overview' | 'creators' | 'polling' | 'votes' | 'form' | 'settings' | 'history' | 'checkin' | 'mail' | 'announcement';
 const tabs = [{ id: 'overview', label: 'Ringkasan', icon: LayoutDashboard }, { id: 'creators', label: 'Creator', icon: Users }, { id: 'polling', label: 'Polling & periode', icon: CalendarDays }, { id: 'votes', label: 'Hasil polling', icon: Vote }, { id: 'form', label: 'Form registrasi', icon: ListChecks }, { id: 'announcement', label: 'Pengumuman', icon: Megaphone }, { id: 'settings', label: 'Pengaturan', icon: Settings2 }, { id: 'history', label: 'Aktivitas', icon: History }, { id: 'checkin', label: 'Check-in acara', icon: CheckCircle2 }, { id: 'mail', label: 'Email lokal', icon: ShieldCheck }] as const;
