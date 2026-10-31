@@ -86,5 +86,13 @@ export function openDatabase(path, email, password) {
       db.exec('COMMIT');
     } catch (error) { db.exec('ROLLBACK'); throw error; }
   }
+  if (!db.prepare('SELECT version FROM schema_migrations WHERE version=6').get()) {
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      db.exec(readFileSync(new URL('./migrations/006-production.sql', import.meta.url), 'utf8'));
+      db.prepare('INSERT INTO schema_migrations VALUES(6,?)').run(timestamp);
+      db.exec('COMMIT');
+    } catch (error) { db.exec('ROLLBACK'); throw error; }
+  }
   return db;
 }

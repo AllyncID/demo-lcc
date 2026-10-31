@@ -7,6 +7,7 @@ export class PhotoError extends Error {}
 
 export function removePhoto(photo, uploadDir) {
   if (!/^\/(?:uploads|receipts)\/[a-f0-9]{48}\.webp$/.test(photo || '')) return;
+  if (typeof uploadDir === 'object') return uploadDir.remove(photo);
   try { unlinkSync(join(uploadDir, photo.split('/').at(-1))); } catch {}
 }
 
@@ -20,10 +21,12 @@ export async function savePhoto(data, uploadDir, { receipt = false } = {}) {
     const image = sharp(buffer, { limitInputPixels: 25000000, failOn: 'error' });
     const metadata = await image.metadata();
     if (!['jpeg', 'png', 'webp'].includes(metadata.format) || (metadata.pages ?? 1) !== 1) throw new PhotoError('Gunakan foto raster yang tidak bergerak.');
-    await image.rotate().resize(receipt ? 1600 : 800, receipt ? 6000 : 1000, { fit: receipt ? 'inside' : 'cover', withoutEnlargement: true }).webp({ quality: receipt ? 92 : 85 }).toFile(join(uploadDir, photo.split('/').at(-1)));
+    const encoded = image.rotate().resize(receipt ? 1600 : 800, receipt ? 6000 : 1000, { fit: receipt ? 'inside' : 'cover', withoutEnlargement: true }).webp({ quality: receipt ? 92 : 85 });
+    if (typeof uploadDir === 'object') await uploadDir.write(photo, await encoded.toBuffer());
+    else await encoded.toFile(join(uploadDir, photo.split('/').at(-1)));
     return photo;
   } catch (error) {
-    removePhoto(photo, uploadDir);
+    await removePhoto(photo, uploadDir);
     if (error instanceof PhotoError || error.code) throw error;
     if (/image|jpeg|png|webp|pixel|unsupported|corrupt|buffer/i.test(error.message)) throw new PhotoError('Foto tidak dapat dibaca. Gunakan JPG, PNG, atau WebP yang valid.');
     throw error;

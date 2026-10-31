@@ -31,7 +31,7 @@ const registration = (proof, patch = {}) => ({ name: 'Peserta Privat', email: 'p
 test('public payloads omit totals while admin retains counts and public popularity order', async () => {
   const f = await fixture();
   try {
-    for (let i = 0; i < 4; i++) f.db.prepare('INSERT INTO votes(creator_id,category_id,voter_hash,ip_hash,created_at) VALUES(?,?,?,?,?)').run(i < 3 ? 3 : 4, i < 3 ? 3 : 4, `voter-${i}`, 'ip', '2026-10-17T00:00:00Z');
+    for (let i = 0; i < 4; i++) f.db.prepare('INSERT INTO votes(creator_id,category_id,voter_hash,ip_hash,created_at) VALUES(?,?,?,?,?)').run(i < 3 ? 3 : 4, i < 3 ? 2 : 3, `voter-${i}`, 'ip', '2026-10-17T00:00:00Z');
     const publicData = (await f.request('/api/bootstrap')).data;
     assert.ok(publicData.creators.every(c => !('votes' in c)), 'anonymous bootstrap exposes counts');
     assert.equal(publicData.creators[0].id, 3);

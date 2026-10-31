@@ -5,6 +5,8 @@ import { api, dateText, numberText } from './api';
 import { Empty, ErrorMessage, Footer, Header } from './components';
 import type { Bootstrap, Field, SocialAccounts } from './types';
 import './registration.css';
+import { prepareUpload } from './upload-image';
+import { whatsappUrl } from './PublicContact';
 
 type Upload = { data: string; name: string };
 const platforms = [{ id: 'facebook', name: 'Facebook', placeholder: 'Nama akun atau link profil Facebook' }, { id: 'instagram', name: 'Instagram', placeholder: '@username Instagram' }, { id: 'tiktok', name: 'TikTok', placeholder: '@username TikTok' }, { id: 'youtube', name: 'YouTube', placeholder: 'Nama channel atau link YouTube' }] as const;
@@ -43,7 +45,7 @@ export function RegisterPage({ data }: { data: Bootstrap }) {
   return <div className="public-page registration-page"><Header data={data}/><main id="main-content" className="registration-shell">
     <section className="registration-banner" aria-labelledby="registration-title"><img src="/assets/register-awards-wallpaper-v2.webp" alt="" className="registration-wallpaper" fetchPriority="high" decoding="async"/><div className="registration-banner-copy"><span className="registration-event"><Award size={16}/> LCC AWARDS {data.settings.year}</span><h1 id="registration-title">Panggung berikutnya,<br/><em>dimulai dari ceritamu.</em></h1><p>Form pendaftaran Lombok Content Creators Awards.</p><span className="registration-date"><CalendarDays size={14}/>Batas pendaftaran: {dateText(data.settings.registrationEndsAt)}</span></div></section>
     <div className="registration-body"><nav className="registration-progress" aria-label="Tahapan pendaftaran"><ol className="steps steps-horizontal">{[['Isi data', '#registration-data'], ['Pembayaran', '#registration-payment'], ['Cek OTP', '#registration-title']].map(([label, href], index) => <li key={label} className={`step ${index < step ? 'step-primary' : ''}`} aria-current={step === index + 1 ? 'step' : undefined}><span className="step-icon" aria-hidden="true">{index < step - 1 ? <Check size={16}/> : index + 1}</span>{index < 2 ? <a href={href} onClick={() => setStep(index + 1)}>{label}</a> : <span>{label}</span>}</li>)}</ol></nav>
-      {!data.registrationOpen ? <section className="registration-card"><Empty>Pendaftaran belum dibuka atau sudah berakhir. <Link to="/vote" className="text-link">Lihat halaman polling</Link></Empty></section> : <>
+      {!data.registrationOpen ? <section className="registration-card"><Empty>Pendaftaran belum dibuka atau sudah berakhir. <Link to="/vote" className="text-link">Lihat halaman polling</Link></Empty></section> : data.mailDeliveryMode === 'unconfigured' ? <section className="registration-card"><Empty>Layanan pendaftaran sedang disiapkan. Silakan hubungi panitia sebelum melakukan pembayaran. <a className="text-link" href={whatsappUrl} target="_blank" rel="noopener noreferrer">Hubungi panitia</a></Empty></section> : <>
       <div className="registration-info"><ShieldCheck size={18}/><p>Lengkapi data diri, lalu unggah bukti pembayaran di bawah. Kolom bertanda <span>*</span> wajib diisi.</p></div>
       <p className="registration-participant-link">Sudah pernah mendaftar? <Link to="/peserta">Buka halaman peserta <ArrowUpRight size={15}/></Link></p>
       <form onSubmit={submit}><fieldset className="registration-lock" disabled={busy}>
@@ -77,10 +79,11 @@ function UploadField({ id, label, required = false, value, onChange, hint }: { i
     if (!file) return; const version = ++selection.current; setError(''); onChange(null);
     if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError('Pilih gambar JPG, PNG, atau WebP maksimal 2 MB.'); return; }
     setReading(true);
-    const reader = new FileReader();
-    reader.onload = () => { if (selection.current !== version) return; onChange({ data: String(reader.result), name: file.name }); setReading(false); };
-    reader.onerror = () => { if (selection.current !== version) return; setError('File gagal dibaca. Pilih gambar lagi.'); setReading(false); };
-    reader.readAsDataURL(file);
+    try {
+      const data = await prepareUpload(file, required);
+      if (selection.current === version) onChange({ data, name: file.name });
+    } catch (error) { if (selection.current === version) setError(error instanceof Error ? error.message : 'File gagal dibaca. Pilih gambar lagi.'); }
+    finally { if (selection.current === version) setReading(false); }
   }
   return <div className={`registration-upload-field ${required ? 'receipt-upload' : ''}`}><label className="form-label" htmlFor={id}>{label} {required ? <span className="required">*</span> : <span className="registration-optional">Opsional</span>}</label><p className="registration-help" id={`${id}-help`}>{hint}</p>
     <div className="registration-upload"><ImagePlus size={27}/><strong>{reading ? 'Membaca gambar…' : value ? 'Ganti gambar' : 'Klik untuk unggah gambar'}</strong><span>JPG, PNG, atau WebP · Maksimal 2 MB</span><input id={id} className="file-input registration-file" type="file" accept="image/jpeg,image/png,image/webp" required={required && !value} aria-describedby={`${id}-help ${id}-error`} aria-invalid={!!error} onChange={e => { read(e.target.files?.[0]); e.target.value = ''; }}/></div>
