@@ -77,7 +77,6 @@ function UploadField({ id, label, required = false, value, onChange, hint }: { i
   const [error, setError] = useState(''); const [reading, setReading] = useState(false); const selection = useRef(0);
   async function read(file?: File) {
     if (!file) return; const version = ++selection.current; setError(''); onChange(null);
-    if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError('Pilih gambar JPG, PNG, atau WebP maksimal 2 MB.'); return; }
     setReading(true);
     try {
       const data = await prepareUpload(file, required);
@@ -86,7 +85,7 @@ function UploadField({ id, label, required = false, value, onChange, hint }: { i
     finally { if (selection.current === version) setReading(false); }
   }
   return <div className={`registration-upload-field ${required ? 'receipt-upload' : ''}`}><label className="form-label" htmlFor={id}>{label} {required ? <span className="required">*</span> : <span className="registration-optional">Opsional</span>}</label><p className="registration-help" id={`${id}-help`}>{hint}</p>
-    <div className="registration-upload"><ImagePlus size={27}/><strong>{reading ? 'Membaca gambar…' : value ? 'Ganti gambar' : 'Klik untuk unggah gambar'}</strong><span>JPG, PNG, atau WebP · Maksimal 2 MB</span><input id={id} className="file-input registration-file" type="file" accept="image/jpeg,image/png,image/webp" required={required && !value} aria-describedby={`${id}-help ${id}-error`} aria-invalid={!!error} onChange={e => { read(e.target.files?.[0]); e.target.value = ''; }}/></div>
+    <div className="registration-upload"><ImagePlus size={27}/><strong>{reading ? 'Membaca gambar…' : value ? 'Ganti gambar' : 'Klik untuk unggah gambar'}</strong><span>JPG, PNG, atau WebP · Maksimal 5 MB</span><input id={id} className="file-input registration-file" type="file" accept="image/jpeg,image/png,image/webp" required={required && !value} aria-describedby={`${id}-help ${id}-error`} aria-invalid={!!error} onChange={e => { read(e.target.files?.[0]); e.target.value = ''; }}/></div>
     {value && <div className="registration-upload-preview"><img src={value.data} alt={`Pratinjau ${label.toLowerCase()}`}/><div><span><Check size={15}/>{value.name}</span><button type="button" className="btn btn-ghost btn-sm" onClick={() => { selection.current++; onChange(null); setReading(false); }}>Hapus <X size={14}/></button></div></div>}<div id={`${id}-error`}><ErrorMessage message={error}/></div>
   </div>;
 }

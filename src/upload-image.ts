@@ -1,5 +1,6 @@
 // Keep a registration with two images below Vercel's request body limit.
 export async function prepareUpload(file: File, receipt = false): Promise<string> {
+  if (file.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Pilih gambar JPG, PNG, atau WebP maksimal 5 MB.');
   const image = await createImageBitmap(file);
   try {
     if (image.width * image.height > 25_000_000) throw new Error('Resolusi gambar terlalu besar. Gunakan gambar maksimal 25 megapiksel.');

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError, dateText, numberText } from './api';
+import { prepareUpload } from './upload-image';
 import { ErrorMessage, Footer, Header, Portrait } from './components';
 import { ArrowUpRight, Award, CheckCircle2, Download01, ImagePlus, LogOut, RefreshCw, ShieldCheck, X } from './icons';
 import type { Bootstrap, RegistrationPayment } from './types';
@@ -112,18 +113,16 @@ export function ParticipantPage({ data }: { data: Bootstrap }) {
     finally { setBusy(''); }
   }
 
-  function readProof(file?: File) {
+  async function readProof(file?: File) {
     if (!file) return;
     const version = ++selection.current;
     setProof(null); setProofError(''); setReading(false);
-    if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setProofError('Pilih gambar JPG, PNG, atau WebP maksimal 2 MB.'); return;
-    }
     setReading(true);
-    const reader = new FileReader();
-    reader.onload = () => { if (selection.current === version) { setProof({ data: String(reader.result), name: file.name }); setReading(false); } };
-    reader.onerror = () => { if (selection.current === version) { setProofError('Gambar gagal dibaca. Pilih file lagi.'); setReading(false); } };
-    reader.readAsDataURL(file);
+    try {
+      const data = await prepareUpload(file, true);
+      if (selection.current === version) setProof({ data, name: file.name });
+    } catch (error) { if (selection.current === version) setProofError(error instanceof Error ? error.message : 'Gambar gagal dibaca. Pilih file lagi.'); }
+    finally { if (selection.current === version) setReading(false); }
   }
 
   async function replaceProof(event: FormEvent<HTMLFormElement>) {
@@ -151,7 +150,7 @@ export function ParticipantPage({ data }: { data: Bootstrap }) {
           {!details.ticket && <p className="ticket-help">{person.status === 'rejected' ? 'Baca catatan panitia sebelum memperbaiki bukti pembayaran. Pendaftaran akan diperiksa kembali setelah bukti pengganti terkirim.' : 'Tiket akan muncul di sini setelah pendaftaran disetujui dan pembayaran diverifikasi panitia. Gunakan tombol Perbarui status untuk mengecek hasil review.'}</p>}
         </section>
         {(person.status === 'rejected' || person.paymentStatus === 'rejected') && <section className="ticket-section" aria-labelledby="replacement-title"><h2 id="replacement-title">Perbaiki bukti pembayaran</h2><p className="ticket-help">Unggah gambar yang memperlihatkan nominal, tanggal, dan tujuan pembayaran dengan jelas. Bukti ini hanya dapat dilihat panitia.</p><PaymentDetails payment={details.payment}/>
-          <form className="participant-proof-form" onSubmit={replaceProof} aria-busy={!!busy || reading}><fieldset className="fieldset ticket-fieldset" disabled={!!busy}><legend className="sr-only">Bukti pembayaran pengganti</legend><label className="ticket-label" htmlFor="replacement-proof"><ImagePlus size={18}/>Bukti pembayaran pengganti <span>*</span></label><input id="replacement-proof" className="file-input" type="file" accept="image/jpeg,image/png,image/webp" required={!proof} aria-describedby="replacement-help replacement-error" onChange={event => { readProof(event.target.files?.[0]); event.target.value = ''; }}/><p id="replacement-help" className="ticket-help">JPG, PNG, atau WebP · Maksimal 2 MB</p>
+          <form className="participant-proof-form" onSubmit={replaceProof} aria-busy={!!busy || reading}><fieldset className="fieldset ticket-fieldset" disabled={!!busy}><legend className="sr-only">Bukti pembayaran pengganti</legend><label className="ticket-label" htmlFor="replacement-proof"><ImagePlus size={18}/>Bukti pembayaran pengganti <span>*</span></label><input id="replacement-proof" className="file-input" type="file" accept="image/jpeg,image/png,image/webp" required={!proof} aria-describedby="replacement-help replacement-error" onChange={event => { readProof(event.target.files?.[0]); event.target.value = ''; }}/><p id="replacement-help" className="ticket-help">JPG, PNG, atau WebP · Maksimal 5 MB</p>
             {reading && <p className="ticket-help" role="status">Membaca gambar…</p>}
             {proof && <div className="participant-proof-preview"><img src={proof.data} alt="Pratinjau bukti pembayaran pengganti"/><p>{proof.name}</p><button className="btn btn-ghost btn-sm" type="button" onClick={() => { selection.current++; setProof(null); setReading(false); }}><X size={14}/>Hapus gambar</button></div>}
             <div id="replacement-error"><ErrorMessage message={proofError}/></div><button className="btn btn-primary" disabled={!!busy || reading || !proof}>{busy === 'proof' ? 'Mengirim bukti…' : 'Kirim bukti pengganti'}<ArrowUpRight size={18}/></button></fieldset></form>
